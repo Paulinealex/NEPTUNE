@@ -22,8 +22,6 @@ if [[ -z "$PROJECT_ID" ]]; then
 fi
 echo "Project Name: $PROJECT_ID"
 
-echo "Project Name: $PROJECT_ID"
-
 REGION="us-central1"
 DATASET_NAME="neptune_data"
 FUNCTION_NAME="neptune-processor"
@@ -35,6 +33,20 @@ echo "========================================="
 
 echo "Setting project..."
 gcloud config set project $PROJECT_ID
+
+# Enable required APIs
+echo ""
+echo "Enabling required APIs..."
+gcloud services enable cloudfunctions.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable eventarc.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable pubsub.googleapis.com
+gcloud services enable bigquery.googleapis.com
+
+echo ""
+echo "Waiting 30 seconds for APIs to propagate..."
+sleep 30
 
 # Create BigQuery dataset
 echo ""
@@ -56,6 +68,7 @@ gcloud pubsub topics create $TOPIC_NAME --project=$PROJECT_ID || echo "Topic may
 echo ""
 echo "Deploying Cloud Function..."
 gcloud functions deploy $FUNCTION_NAME \
+  --gen2 \
   --runtime python311 \
   --trigger-topic $TOPIC_NAME \
   --entry-point process_message \
